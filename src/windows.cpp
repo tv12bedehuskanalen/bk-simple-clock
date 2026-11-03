@@ -10,6 +10,7 @@
 using namespace Gdiplus;
 static COLORREF ink=RGB(173,173,173),custom[16]{};
 static HWND clockWindow;
+static int hoveredEdge=0;
 static const wchar_t *settings=L"Software\\BK Clock";
 static void saveColor(){HKEY key;if(RegCreateKeyExW(HKEY_CURRENT_USER,settings,0,nullptr,0,KEY_WRITE,nullptr,&key,nullptr)==ERROR_SUCCESS){DWORD c=ink;RegSetValueExW(key,L"Color",0,REG_DWORD,(BYTE*)&c,sizeof c);RegCloseKey(key);}}
 static void armTimer(HWND w){SYSTEMTIME t;GetLocalTime(&t);SetTimer(w,1,1005-t.wMilliseconds,nullptr);}
@@ -21,10 +22,18 @@ static void paint(HWND w){
   SolidBrush active(Color(255,GetRValue(ink),GetGValue(ink),GetBValue(ink))),inactive(Color(255,6,6,6));
   clockface::render(time(nullptr),[&](const clockface::Polygon &p,bool on){GraphicsPath path;auto last=clockface::inset(p[0],p[5]);
    for(int i=0;i<6;++i){auto before=clockface::inset(p[i],p[(i+5)%6]);auto after=clockface::inset(p[i],p[(i+1)%6]);path.AddLine((REAL)last.x,(REAL)last.y,(REAL)before.x,(REAL)before.y);path.AddBezier((REAL)before.x,(REAL)before.y,(REAL)p[i].x,(REAL)p[i].y,(REAL)p[i].x,(REAL)p[i].y,(REAL)after.x,(REAL)after.y);last=after;}path.CloseFigure();g.FillPath(on?&active:&inactive,&path);});
+  g.ResetTransform();Pen edge(Color(255,102,102,102),1);
+  if(hoveredEdge==HTLEFT||hoveredEdge==HTTOPLEFT||hoveredEdge==HTBOTTOMLEFT)g.DrawLine(&edge,0,0,0,rc.bottom-1);
+  if(hoveredEdge==HTRIGHT||hoveredEdge==HTTOPRIGHT||hoveredEdge==HTBOTTOMRIGHT)g.DrawLine(&edge,rc.right-1,0,rc.right-1,rc.bottom-1);
+  if(hoveredEdge==HTTOP||hoveredEdge==HTTOPLEFT||hoveredEdge==HTTOPRIGHT)g.DrawLine(&edge,0,0,rc.right-1,0);
+  if(hoveredEdge==HTBOTTOM||hoveredEdge==HTBOTTOMLEFT||hoveredEdge==HTBOTTOMRIGHT)g.DrawLine(&edge,0,rc.bottom-1,rc.right-1,rc.bottom-1);
   Graphics screen(dc);screen.DrawImage(&buffer,0,0);
  }EndPaint(w,&ps);
 }
 static LRESULT CALLBACK proc(HWND w,UINT msg,WPARAM wp,LPARAM lp){switch(msg){
+ case WM_NCMOUSEMOVE:{int edge=(int)wp;if(edge!=hoveredEdge){hoveredEdge=edge;InvalidateRect(w,nullptr,FALSE);}TRACKMOUSEEVENT track={sizeof track,TME_LEAVE|TME_NONCLIENT,w,0};TrackMouseEvent(&track);break;}
+ case WM_NCMOUSELEAVE:hoveredEdge=0;InvalidateRect(w,nullptr,FALSE);return 0;
+ case WM_SETCURSOR:if(LOWORD(lp)>=HTLEFT&&LOWORD(lp)<=HTBOTTOMRIGHT){int ht=LOWORD(lp);LPCWSTR cursor=ht==HTLEFT||ht==HTRIGHT?IDC_SIZEWE:ht==HTTOP||ht==HTBOTTOM?IDC_SIZENS:ht==HTTOPLEFT||ht==HTBOTTOMRIGHT?IDC_SIZENWSE:IDC_SIZENESW;SetCursor(LoadCursor(nullptr,cursor));return TRUE;}break;
  case WM_CREATE:armTimer(w);return 0;
  case WM_TIMER:KillTimer(w,1);InvalidateRect(w,nullptr,FALSE);armTimer(w);return 0;
  case WM_TIMECHANGE:InvalidateRect(w,nullptr,FALSE);armTimer(w);return 0;

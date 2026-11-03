@@ -4,6 +4,8 @@
 @property NSColor *ink;
 @property NSTimer *timer;
 @property NSInteger lastSecond;
+@property NSUInteger hoveredEdges;
+@property NSTrackingArea *edgeTracking;
 - (void)tick;
 @end
 @implementation ClockView
@@ -41,7 +43,43 @@
   }[path closePath];[path fill];
  });
  [NSGraphicsContext restoreGraphicsState];
+ if(self.hoveredEdges){
+  [[NSColor colorWithWhite:.40 alpha:1]setFill];double w=self.bounds.size.width,h=self.bounds.size.height;
+  if(self.hoveredEdges&1)NSRectFill(NSMakeRect(0,0,1,h));if(self.hoveredEdges&2)NSRectFill(NSMakeRect(w-1,0,1,h));
+  if(self.hoveredEdges&4)NSRectFill(NSMakeRect(0,0,w,1));if(self.hoveredEdges&8)NSRectFill(NSMakeRect(0,h-1,w,1));
+ }
 }
+// Native resize cursors plus a quiet hover outline make the frameless edges discoverable.
+- (void)updateTrackingAreas {
+ [super updateTrackingAreas];if(self.edgeTracking)[self removeTrackingArea:self.edgeTracking];
+ self.edgeTracking=[[NSTrackingArea alloc]initWithRect:NSZeroRect options:NSTrackingMouseMoved|NSTrackingMouseEnteredAndExited|NSTrackingActiveAlways|NSTrackingInVisibleRect owner:self userInfo:nil];[self addTrackingArea:self.edgeTracking];
+ self.window.acceptsMouseMovedEvents=YES;
+}
+- (void)mouseMoved:(NSEvent *)event {
+ NSPoint p=[self convertPoint:event.locationInWindow fromView:nil];
+ NSUInteger edges=(p.x<10?1:0)|(p.x>self.bounds.size.width-10?2:0)|(p.y<10?4:0)|(p.y>self.bounds.size.height-10?8:0);
+ if(edges!=self.hoveredEdges){self.hoveredEdges=edges;self.needsDisplay=YES;}
+}
+- (void)mouseEntered:(NSEvent *)event {[self mouseMoved:event];}
+- (void)mouseExited:(NSEvent *)event {self.hoveredEdges=0;self.needsDisplay=YES;}
+- (NSCursor *)diagonalCursor:(BOOL)descending {
+ NSImage *image=[[NSImage alloc]initWithSize:NSMakeSize(24,24)];[image lockFocus];
+ NSBezierPath *p=[NSBezierPath bezierPath];
+ if(descending){[p moveToPoint:NSMakePoint(5,19)];[p lineToPoint:NSMakePoint(19,5)];[p moveToPoint:NSMakePoint(5,13)];[p lineToPoint:NSMakePoint(5,19)];[p lineToPoint:NSMakePoint(11,19)];[p moveToPoint:NSMakePoint(13,5)];[p lineToPoint:NSMakePoint(19,5)];[p lineToPoint:NSMakePoint(19,11)];}
+ else {[p moveToPoint:NSMakePoint(5,5)];[p lineToPoint:NSMakePoint(19,19)];[p moveToPoint:NSMakePoint(5,11)];[p lineToPoint:NSMakePoint(5,5)];[p lineToPoint:NSMakePoint(11,5)];[p moveToPoint:NSMakePoint(13,19)];[p lineToPoint:NSMakePoint(19,19)];[p lineToPoint:NSMakePoint(19,13)];}
+ p.lineJoinStyle=NSLineJoinStyleRound;p.lineCapStyle=NSLineCapStyleRound;
+ [NSColor.blackColor setStroke];p.lineWidth=3.5;[p stroke];[NSColor.whiteColor setStroke];p.lineWidth=1.5;[p stroke];[image unlockFocus];
+ return [[NSCursor alloc]initWithImage:image hotSpot:NSMakePoint(12,12)];
+}
+- (void)resetCursorRects {
+ [super resetCursorRects];double w=self.bounds.size.width,h=self.bounds.size.height;
+ [self addCursorRect:NSMakeRect(0,10,10,h-20) cursor:NSCursor.resizeLeftRightCursor];[self addCursorRect:NSMakeRect(w-10,10,10,h-20) cursor:NSCursor.resizeLeftRightCursor];
+ [self addCursorRect:NSMakeRect(10,0,w-20,10) cursor:NSCursor.resizeUpDownCursor];[self addCursorRect:NSMakeRect(10,h-10,w-20,10) cursor:NSCursor.resizeUpDownCursor];
+ NSCursor *down=[self diagonalCursor:YES],*up=[self diagonalCursor:NO];
+ [self addCursorRect:NSMakeRect(0,0,10,10) cursor:down];[self addCursorRect:NSMakeRect(w-10,h-10,10,10) cursor:down];
+ [self addCursorRect:NSMakeRect(w-10,0,10,10) cursor:up];[self addCursorRect:NSMakeRect(0,h-10,10,10) cursor:up];
+}
+- (void)setFrameSize:(NSSize)size {[super setFrameSize:size];[self.window invalidateCursorRectsForView:self];self.needsDisplay=YES;}
 - (void)mouseDown:(NSEvent *)event {
  if(event.modifierFlags & NSEventModifierFlagControl) {[self rightMouseDown:event];return;}
  NSPoint p=[self convertPoint:event.locationInWindow fromView:nil];
