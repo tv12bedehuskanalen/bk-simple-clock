@@ -1,0 +1,7 @@
+# BK Big Clock icon
+
+Generated with the built-in image generation tool using the existing BK brand symbol as a reference. The selected design is `bk-big-clock-v2.png`; `Clock.icns` and `Clock.ico` are size-packaged versions for the native apps.
+
+## Final prompt
+
+Revise this desktop app icon for BK Big Clock. The previous design has the wrong hierarchy: remove the giant clock ring and giant hands entirely. The BK geometric B brand symbol must be the large primary subject, occupying around 72% of the tile height and 65% of its width, centered slightly upper-left. Preserve exactly the recognizable geometric B silhouette from the references: squared left spine, two rounded right lobes, triangular diagonal negative spaces on the inside left. Add ONE small analog clock badge overlaid on and offset from the lower-right corner of the large B. Clock badge diameter only 30% of tile width, overlapping the lower-right part of the B; clear dark charcoal circular face with a warm white rim and two simple thick white hands. This should read as 'large BK logo with small clock overlay', never as a clock containing a tiny logo. Maintain the previous charcoal rounded-square tile and restrained warm white/silver material, but simplify lighting and keep strong contrast for app icon readability at 32 pixels. Square app icon, straight on, no perspective. Transparent outside rounded tile. No text, no numbers, no mockup. Output only one finished icon.

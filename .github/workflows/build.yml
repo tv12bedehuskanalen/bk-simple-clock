@@ -9,8 +9,8 @@ jobs:
       - run: ./scripts/build-mac.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: BK-Clock-macOS
-          path: dist/BK-Clock-macOS.zip
+          name: BK-Big-Clock-macOS
+          path: dist/BK-Big-Clock-macOS.zip
   windows:
     runs-on: windows-latest
     steps:
@@ -20,5 +20,5 @@ jobs:
         shell: cmd
       - uses: actions/upload-artifact@v4
         with:
-          name: BK-Clock-Windows
-          path: dist/BK Clock.exe
+          name: BK-Big-Clock-Windows
+          path: dist/BK Big Clock.exe

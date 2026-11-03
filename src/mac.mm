@@ -106,7 +106,7 @@
 }
 - (void)rightMouseDown:(NSEvent *)event {
  NSMenu *m=[NSMenu new];
- for(NSArray *entry in @[@[@"Text Color…",@"chooseColor:"],@[@"Reset Color",@"resetColor:"],@[@"Quit BK Clock",@"quit:"]]) {
+ for(NSArray *entry in @[@[@"Text Color…",@"chooseColor:"],@[@"Reset Color",@"resetColor:"],@[@"Quit BK Big Clock",@"quit:"]]) {
   NSMenuItem *i=[[NSMenuItem alloc]initWithTitle:entry[0] action:NSSelectorFromString(entry[1]) keyEquivalent:@""];i.target=self;[m addItem:i];
  }
  [NSMenu popUpContextMenu:m withEvent:event forView:self];
@@ -129,7 +129,7 @@
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)n {
  self.window=[[ClockWindow alloc]initWithContentRect:NSMakeRect(0,0,608,200) styleMask:NSWindowStyleMaskBorderless|NSWindowStyleMaskResizable backing:NSBackingStoreBuffered defer:NO];
- self.window.title=@"BK Clock"; self.window.backgroundColor=NSColor.blackColor; self.window.opaque=YES;self.window.hasShadow=NO;
+ self.window.title=@"BK Big Clock"; self.window.backgroundColor=NSColor.blackColor; self.window.opaque=YES;self.window.hasShadow=NO;
  self.window.contentAspectRatio=NSMakeSize(clockface::width,clockface::height);self.window.contentMinSize=NSMakeSize(240,240/clockface::ratio);self.window.delegate=self;
  self.window.contentView=[[ClockView alloc]initWithFrame:NSMakeRect(0,0,608,200)];
  [self.window center];[self.window setFrameAutosaveName:@"ClockWindow"];
@@ -139,6 +139,6 @@
 @end
 int main(){@autoreleasepool{
  NSApplication *app=NSApplication.sharedApplication;[app setActivationPolicy:NSApplicationActivationPolicyRegular];
- NSMenu *menu=[NSMenu new];NSMenuItem *root=[NSMenuItem new];[menu addItem:root];NSMenu *sub=[NSMenu new];[sub addItemWithTitle:@"Quit BK Clock" action:@selector(terminate:) keyEquivalent:@"q"];root.submenu=sub;app.mainMenu=menu;
+ NSMenu *menu=[NSMenu new];NSMenuItem *root=[NSMenuItem new];[menu addItem:root];NSMenu *sub=[NSMenu new];[sub addItemWithTitle:@"Quit BK Big Clock" action:@selector(terminate:) keyEquivalent:@"q"];root.submenu=sub;app.mainMenu=menu;
  AppDelegate *delegate=[AppDelegate new];app.delegate=delegate;[app run];
 }}
