@@ -22,11 +22,16 @@ static void paint(HWND w){
   SolidBrush active(Color(255,GetRValue(ink),GetGValue(ink),GetBValue(ink))),inactive(Color(255,6,6,6));
   clockface::render(time(nullptr),[&](const clockface::Polygon &p,bool on){GraphicsPath path;auto last=clockface::inset(p[0],p[5]);
    for(int i=0;i<6;++i){auto before=clockface::inset(p[i],p[(i+5)%6]);auto after=clockface::inset(p[i],p[(i+1)%6]);path.AddLine((REAL)last.x,(REAL)last.y,(REAL)before.x,(REAL)before.y);path.AddBezier((REAL)before.x,(REAL)before.y,(REAL)p[i].x,(REAL)p[i].y,(REAL)p[i].x,(REAL)p[i].y,(REAL)after.x,(REAL)after.y);last=after;}path.CloseFigure();g.FillPath(on?&active:&inactive,&path);});
-  g.ResetTransform();Pen edge(Color(255,102,102,102),1);
-  if(hoveredEdge==HTLEFT||hoveredEdge==HTTOPLEFT||hoveredEdge==HTBOTTOMLEFT)g.DrawLine(&edge,0,0,0,rc.bottom-1);
-  if(hoveredEdge==HTRIGHT||hoveredEdge==HTTOPRIGHT||hoveredEdge==HTBOTTOMRIGHT)g.DrawLine(&edge,rc.right-1,0,rc.right-1,rc.bottom-1);
-  if(hoveredEdge==HTTOP||hoveredEdge==HTTOPLEFT||hoveredEdge==HTTOPRIGHT)g.DrawLine(&edge,0,0,rc.right-1,0);
-  if(hoveredEdge==HTBOTTOM||hoveredEdge==HTBOTTOMLEFT||hoveredEdge==HTBOTTOMRIGHT)g.DrawLine(&edge,0,rc.bottom-1,rc.right-1,rc.bottom-1);
+  g.ResetTransform();
+  if(hoveredEdge==HTTOPLEFT||hoveredEdge==HTTOPRIGHT||hoveredEdge==HTBOTTOMLEFT||hoveredEdge==HTBOTTOMRIGHT){
+   bool left=hoveredEdge==HTTOPLEFT||hoveredEdge==HTBOTTOMLEFT;
+   bool top=hoveredEdge==HTTOPLEFT||hoveredEdge==HTTOPRIGHT;
+   REAL scale=(REAL)GetDpiForWindow(w)/96.0f;
+   REAL x=left?5*scale:rc.right-5*scale,y=top?5*scale:rc.bottom-5*scale;
+   REAL dx=left?12*scale:-12*scale,dy=top?12*scale:-12*scale;
+   Pen grip(Color(255,122,122,122),1.25f*scale);grip.SetStartCap(LineCapRound);grip.SetEndCap(LineCapRound);grip.SetLineJoin(LineJoinRound);
+   PointF points[]={PointF(x,y+dy),PointF(x,y),PointF(x+dx,y)};g.DrawLines(&grip,points,3);
+  }
   Graphics screen(dc);screen.DrawImage(&buffer,0,0);
  }EndPaint(w,&ps);
 }
@@ -40,7 +45,10 @@ static LRESULT CALLBACK proc(HWND w,UINT msg,WPARAM wp,LPARAM lp){switch(msg){
  case WM_PAINT:paint(w);return 0;
  case WM_ERASEBKGND:return 1;
  case WM_NCCALCSIZE:return 0;
- case WM_NCHITTEST:{POINT p={GET_X_LPARAM(lp),GET_Y_LPARAM(lp)};RECT r;GetWindowRect(w,&r);int edge=std::max(6,GetSystemMetrics(SM_CXSIZEFRAME));bool l=p.x<r.left+edge,rr=p.x>=r.right-edge,t=p.y<r.top+edge,b=p.y>=r.bottom-edge;return t?(l?HTTOPLEFT:rr?HTTOPRIGHT:HTTOP):b?(l?HTBOTTOMLEFT:rr?HTBOTTOMRIGHT:HTBOTTOM):l?HTLEFT:rr?HTRIGHT:HTCAPTION;}
+ case WM_NCHITTEST:{POINT p={GET_X_LPARAM(lp),GET_Y_LPARAM(lp)};RECT r;GetWindowRect(w,&r);int edge=std::max(6,GetSystemMetrics(SM_CXSIZEFRAME));int corner=MulDiv(20,GetDpiForWindow(w),96);
+ bool nearLeft=p.x<r.left+corner,nearRight=p.x>=r.right-corner,nearTop=p.y<r.top+corner,nearBottom=p.y>=r.bottom-corner;
+ if((nearLeft||nearRight)&&(nearTop||nearBottom))return nearTop?(nearLeft?HTTOPLEFT:HTTOPRIGHT):(nearLeft?HTBOTTOMLEFT:HTBOTTOMRIGHT);
+ bool l=p.x<r.left+edge,rr=p.x>=r.right-edge,t=p.y<r.top+edge,b=p.y>=r.bottom-edge;return t?(l?HTTOPLEFT:rr?HTTOPRIGHT:HTTOP):b?(l?HTBOTTOMLEFT:rr?HTBOTTOMRIGHT:HTBOTTOM):l?HTLEFT:rr?HTRIGHT:HTCAPTION;}
  case WM_GETMINMAXINFO:{auto m=(MINMAXINFO*)lp;m->ptMinTrackSize={280,70};return 0;}
  case WM_SIZING:{RECT *r=(RECT*)lp;int width=std::max(280L,r->right-r->left);if(wp==WMSZ_TOP||wp==WMSZ_BOTTOM)width=std::max(280L,(r->bottom-r->top)*4);int height=width/4;
   if(wp==WMSZ_LEFT||wp==WMSZ_TOPLEFT||wp==WMSZ_BOTTOMLEFT)r->left=r->right-width;else r->right=r->left+width;

@@ -6,7 +6,7 @@ A small native desktop clock for macOS and Windows. No browser, server, installe
 - Local system time in `HH:MM:SS`, always 24-hour, including leading zeroes.
 - Steady colons, equal-width seven-segment digits, and very faint inactive segments.
 - Custom text color, remembered between launches.
-- Drag the clock to move it; drag an edge or corner to resize at a fixed 4:1 ratio. Resize cursors and a subtle edge highlight appear on hover.
+- Drag the clock to move it; drag an edge or corner to resize at a fixed 4:1 ratio. Resize cursors indicate the available direction. A small inset L-shaped grip appears only at the hovered corner.
 - Right-click (Control-click on Mac) for **Text Color…**, **Reset Color**, and **Quit BK Clock**.
 - Reads the system clock each second and re-aligns the next update to the second boundary. No animation loop or network access.
 

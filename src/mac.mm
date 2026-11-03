@@ -43,13 +43,18 @@
   }[path closePath];[path fill];
  });
  [NSGraphicsContext restoreGraphicsState];
- if(self.hoveredEdges){
-  [[NSColor colorWithWhite:.40 alpha:1]setFill];double w=self.bounds.size.width,h=self.bounds.size.height;
-  if(self.hoveredEdges&1)NSRectFill(NSMakeRect(0,0,1,h));if(self.hoveredEdges&2)NSRectFill(NSMakeRect(w-1,0,1,h));
-  if(self.hoveredEdges&4)NSRectFill(NSMakeRect(0,0,w,1));if(self.hoveredEdges&8)NSRectFill(NSMakeRect(0,h-1,w,1));
+ // A short, inset L marks only the corner under the pointer.
+ if((self.hoveredEdges&3)&&(self.hoveredEdges&12)){
+  double x=(self.hoveredEdges&1)?5:self.bounds.size.width-5;
+  double y=(self.hoveredEdges&4)?5:self.bounds.size.height-5;
+  double dx=(self.hoveredEdges&1)?12:-12,dy=(self.hoveredEdges&4)?12:-12;
+  NSBezierPath *grip=[NSBezierPath bezierPath];[grip moveToPoint:NSMakePoint(x,y+dy)];
+  [grip lineToPoint:NSMakePoint(x,y)];[grip lineToPoint:NSMakePoint(x+dx,y)];
+  grip.lineWidth=1.25;grip.lineCapStyle=NSLineCapStyleRound;grip.lineJoinStyle=NSLineJoinStyleRound;
+  [[NSColor colorWithWhite:.48 alpha:1]setStroke];[grip stroke];
  }
 }
-// Native resize cursors plus a quiet hover outline make the frameless edges discoverable.
+// Only hovered corners display a small grip; edge resizing keeps its native cursor.
 - (void)updateTrackingAreas {
  [super updateTrackingAreas];if(self.edgeTracking)[self removeTrackingArea:self.edgeTracking];
  self.edgeTracking=[[NSTrackingArea alloc]initWithRect:NSZeroRect options:NSTrackingMouseMoved|NSTrackingMouseEnteredAndExited|NSTrackingActiveAlways|NSTrackingInVisibleRect owner:self userInfo:nil];[self addTrackingArea:self.edgeTracking];
@@ -57,7 +62,7 @@
 }
 - (void)mouseMoved:(NSEvent *)event {
  NSPoint p=[self convertPoint:event.locationInWindow fromView:nil];
- NSUInteger edges=(p.x<10?1:0)|(p.x>self.bounds.size.width-10?2:0)|(p.y<10?4:0)|(p.y>self.bounds.size.height-10?8:0);
+ NSUInteger edges=(p.x<20?1:0)|(p.x>self.bounds.size.width-20?2:0)|(p.y<20?4:0)|(p.y>self.bounds.size.height-20?8:0);
  if(edges!=self.hoveredEdges){self.hoveredEdges=edges;self.needsDisplay=YES;}
 }
 - (void)mouseEntered:(NSEvent *)event {[self mouseMoved:event];}
@@ -76,15 +81,17 @@
  [self addCursorRect:NSMakeRect(0,10,10,h-20) cursor:NSCursor.resizeLeftRightCursor];[self addCursorRect:NSMakeRect(w-10,10,10,h-20) cursor:NSCursor.resizeLeftRightCursor];
  [self addCursorRect:NSMakeRect(10,0,w-20,10) cursor:NSCursor.resizeUpDownCursor];[self addCursorRect:NSMakeRect(10,h-10,w-20,10) cursor:NSCursor.resizeUpDownCursor];
  NSCursor *down=[self diagonalCursor:YES],*up=[self diagonalCursor:NO];
- [self addCursorRect:NSMakeRect(0,0,10,10) cursor:down];[self addCursorRect:NSMakeRect(w-10,h-10,10,10) cursor:down];
- [self addCursorRect:NSMakeRect(w-10,0,10,10) cursor:up];[self addCursorRect:NSMakeRect(0,h-10,10,10) cursor:up];
+ [self addCursorRect:NSMakeRect(0,0,20,20) cursor:down];[self addCursorRect:NSMakeRect(w-20,h-20,20,20) cursor:down];
+ [self addCursorRect:NSMakeRect(w-20,0,20,20) cursor:up];[self addCursorRect:NSMakeRect(0,h-20,20,20) cursor:up];
 }
 - (void)setFrameSize:(NSSize)size {[super setFrameSize:size];[self.window invalidateCursorRectsForView:self];self.needsDisplay=YES;}
 - (void)mouseDown:(NSEvent *)event {
  if(event.modifierFlags & NSEventModifierFlagControl) {[self rightMouseDown:event];return;}
  NSPoint p=[self convertPoint:event.locationInWindow fromView:nil];
  NSRect original=self.window.frame; NSPoint start=NSEvent.mouseLocation;
- BOOL left=p.x<10,right=p.x>self.bounds.size.width-10,top=p.y<10,bottom=p.y>self.bounds.size.height-10;
+ BOOL corner=(p.x<20||p.x>self.bounds.size.width-20)&&(p.y<20||p.y>self.bounds.size.height-20);
+ double zone=corner?20:10;
+ BOOL left=p.x<zone,right=p.x>self.bounds.size.width-zone,top=p.y<zone,bottom=p.y>self.bounds.size.height-zone;
  if(!(left||right||top||bottom)) {[self.window performWindowDragWithEvent:event];return;}
  for(;;) {
   NSEvent *next=[self.window nextEventMatchingMask:NSEventMaskLeftMouseDragged|NSEventMaskLeftMouseUp];
