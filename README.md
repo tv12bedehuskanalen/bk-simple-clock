@@ -18,7 +18,7 @@ Get the apps from [Releases](https://github.com/tv12bedehuskanalen/bk-simple-clo
 
 **Windows:** double-click `BK Clock.exe`. The x64 executable uses only libraries included with Windows; no installer or runtime download is needed.
 
-These builds do not have paid Apple notarization or a Windows publisher certificate, so the operating system may ask you to approve the first launch. Windows is cross-compiled; interactive testing has been performed on macOS only.
+These builds do not have paid Apple notarization or a Windows publisher certificate, so the operating system may ask you to approve the first launch. The release executable is built on Windows with a statically linked runtime. Interactive testing has been performed on macOS only.
 
 ## Build from source
 
