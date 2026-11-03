@@ -1,0 +1,7 @@
+dist/
+*.obj
+*.pdb
+*.lib
+.DS_Store
+.zig-cache/
+zig-out/

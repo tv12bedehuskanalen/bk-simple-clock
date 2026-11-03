@@ -1,0 +1,24 @@
+name: Build standalone apps
+on: [push, workflow_dispatch]
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: clang++ -std=c++17 -Wall -Wextra -Werror tests/clock-test.cpp -o /tmp/bk-clock-test && /tmp/bk-clock-test
+      - run: ./scripts/build-mac.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BK-Clock-macOS
+          path: dist/BK-Clock-macOS.zip
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - run: scripts\build-windows.bat
+        shell: cmd
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BK-Clock-Windows
+          path: dist/BK Clock.exe
