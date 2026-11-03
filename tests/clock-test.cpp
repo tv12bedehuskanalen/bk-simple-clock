@@ -5,13 +5,16 @@
 // The original corner artifacts came from segment overlap. Check every pair
 // with the separating-axis test so future geometry changes cannot reintroduce it.
 bool separated(const clockface::Polygon &a,const clockface::Polygon &b){
- for(auto &poly:{a,b}) for(int i=0;i<6;++i){
+ for(auto &poly:{a,b}) {
+  for(int i=0;i<6;++i){
   auto p=poly[i],q=poly[(i+1)%6];double nx=q.y-p.y,ny=p.x-q.x;if(nx==0&&ny==0)continue;
   double amin=1e9,amax=-1e9,bmin=1e9,bmax=-1e9;
   for(auto v:a){double d=v.x*nx+v.y*ny;amin=std::fmin(amin,d);amax=std::fmax(amax,d);}
   for(auto v:b){double d=v.x*nx+v.y*ny;bmin=std::fmin(bmin,d);bmax=std::fmax(bmax,d);}
   if(amax<=bmin||bmax<=amin)return true;
- }return false;
+  }
+ }
+ return false;
 }
 int main(){
  setenv("TZ","UTC",1);tzset();
