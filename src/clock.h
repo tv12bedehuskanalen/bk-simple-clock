@@ -3,7 +3,7 @@
 #include <ctime>
 #include <cmath>
 namespace clockface {
-constexpr double width=1000, height=250, ratio=width/height;
+constexpr double width=760, height=250, ratio=width/height;
 struct Point { double x,y; };
 using Polygon=std::array<Point,6>;
 constexpr unsigned masks[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f};
@@ -35,12 +35,12 @@ inline std::array<int,6> digits(std::time_t now) {
 }
 template<class Draw> void render(std::time_t now,Draw draw) {
  auto d=digits(now);
- constexpr double positions[]={32,144,388,500,744,856};
+ constexpr double positions[]={24,128,280,384,536,640};
  for(int i=0;i<6;++i) for(int s=0;s<7;++s) {
   auto p=segments[s]; for(auto &v:p) {v.x+=positions[i];v.y+=35;}
   draw(p,(masks[d[i]]&(1u<<s))!=0);
  }
- for(double x:{285.,641.}) for(double y:{76.,150.}) {
+ for(double x:{244.,500.}) for(double y:{76.,150.}) {
   Polygon p={{{x,y},{x+16,y},{x+16,y+16},{x,y+16},{x,y+16},{x,y}}};draw(p,true);
  }
 }

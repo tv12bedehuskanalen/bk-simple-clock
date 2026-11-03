@@ -99,7 +99,7 @@
   NSPoint now=NSEvent.mouseLocation;double dx=now.x-start.x,dy=now.y-start.y;
   double w=original.size.width;
   if(left||right)w+=(left?-dx:dx);else w+=(bottom?-dy:dy)*clockface::ratio;
-  w=MAX(280,w); double h=w/clockface::ratio;
+  w=MAX(240,w); double h=w/clockface::ratio;
   NSRect frame=NSMakeRect(left?NSMaxX(original)-w:original.origin.x,top?original.origin.y:NSMaxY(original)-h,w,h);
   [self.window setFrame:frame display:YES];
  }
@@ -128,11 +128,12 @@
 @end
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)n {
- self.window=[[ClockWindow alloc]initWithContentRect:NSMakeRect(0,0,800,200) styleMask:NSWindowStyleMaskBorderless|NSWindowStyleMaskResizable backing:NSBackingStoreBuffered defer:NO];
+ self.window=[[ClockWindow alloc]initWithContentRect:NSMakeRect(0,0,608,200) styleMask:NSWindowStyleMaskBorderless|NSWindowStyleMaskResizable backing:NSBackingStoreBuffered defer:NO];
  self.window.title=@"BK Clock"; self.window.backgroundColor=NSColor.blackColor; self.window.opaque=YES;self.window.hasShadow=NO;
- self.window.contentAspectRatio=NSMakeSize(4,1);self.window.contentMinSize=NSMakeSize(280,70);self.window.delegate=self;
- self.window.contentView=[[ClockView alloc]initWithFrame:NSMakeRect(0,0,800,200)];
- [self.window center];[self.window setFrameAutosaveName:@"ClockWindow"];[self.window makeKeyAndOrderFront:nil];[NSApp activateIgnoringOtherApps:YES];
+ self.window.contentAspectRatio=NSMakeSize(clockface::width,clockface::height);self.window.contentMinSize=NSMakeSize(240,240/clockface::ratio);self.window.delegate=self;
+ self.window.contentView=[[ClockView alloc]initWithFrame:NSMakeRect(0,0,608,200)];
+ [self.window center];[self.window setFrameAutosaveName:@"ClockWindow"];
+ NSRect frame=self.window.frame;frame.size.width=frame.size.height*clockface::ratio;[self.window setFrame:frame display:YES];[self.window makeKeyAndOrderFront:nil];[NSApp activateIgnoringOtherApps:YES];
 }
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {return YES;}
 @end

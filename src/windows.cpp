@@ -49,21 +49,21 @@ static LRESULT CALLBACK proc(HWND w,UINT msg,WPARAM wp,LPARAM lp){switch(msg){
  bool nearLeft=p.x<r.left+corner,nearRight=p.x>=r.right-corner,nearTop=p.y<r.top+corner,nearBottom=p.y>=r.bottom-corner;
  if((nearLeft||nearRight)&&(nearTop||nearBottom))return nearTop?(nearLeft?HTTOPLEFT:HTTOPRIGHT):(nearLeft?HTBOTTOMLEFT:HTBOTTOMRIGHT);
  bool l=p.x<r.left+edge,rr=p.x>=r.right-edge,t=p.y<r.top+edge,b=p.y>=r.bottom-edge;return t?(l?HTTOPLEFT:rr?HTTOPRIGHT:HTTOP):b?(l?HTBOTTOMLEFT:rr?HTBOTTOMRIGHT:HTBOTTOM):l?HTLEFT:rr?HTRIGHT:HTCAPTION;}
- case WM_GETMINMAXINFO:{auto m=(MINMAXINFO*)lp;m->ptMinTrackSize={280,70};return 0;}
- case WM_SIZING:{RECT *r=(RECT*)lp;int width=std::max(280L,r->right-r->left);if(wp==WMSZ_TOP||wp==WMSZ_BOTTOM)width=std::max(280L,(r->bottom-r->top)*4);int height=width/4;
+ case WM_GETMINMAXINFO:{auto m=(MINMAXINFO*)lp;m->ptMinTrackSize={240,(LONG)std::ceil(240/clockface::ratio)};return 0;}
+ case WM_SIZING:{RECT *r=(RECT*)lp;int width=std::max(240L,r->right-r->left);if(wp==WMSZ_TOP||wp==WMSZ_BOTTOM)width=std::max(240L,(LONG)std::lround((r->bottom-r->top)*clockface::ratio));int height=(int)std::lround(width/clockface::ratio);
   if(wp==WMSZ_LEFT||wp==WMSZ_TOPLEFT||wp==WMSZ_BOTTOMLEFT)r->left=r->right-width;else r->right=r->left+width;
   if(wp==WMSZ_TOP||wp==WMSZ_TOPLEFT||wp==WMSZ_TOPRIGHT)r->top=r->bottom-height;else r->bottom=r->top+height;return TRUE;}
  case WM_NCRBUTTONUP:case WM_CONTEXTMENU:{POINT p;GetCursorPos(&p);HMENU menu=CreatePopupMenu();AppendMenuW(menu,MF_STRING,1,L"Text Color…");AppendMenuW(menu,MF_STRING,2,L"Reset Color");AppendMenuW(menu,MF_SEPARATOR,0,nullptr);AppendMenuW(menu,MF_STRING,3,L"Quit BK Clock");SetForegroundWindow(w);int action=TrackPopupMenu(menu,TPM_RETURNCMD|TPM_RIGHTBUTTON,p.x,p.y,0,w,nullptr);DestroyMenu(menu);
   if(action==1){CHOOSECOLORW c={};c.lStructSize=sizeof c;c.hwndOwner=w;c.rgbResult=ink;c.lpCustColors=custom;c.Flags=CC_FULLOPEN|CC_RGBINIT;if(ChooseColorW(&c)){ink=c.rgbResult;saveColor();InvalidateRect(w,nullptr,FALSE);}}
   if(action==2){ink=RGB(173,173,173);saveColor();InvalidateRect(w,nullptr,FALSE);}if(action==3)DestroyWindow(w);return 0;}
  case WM_NCLBUTTONDBLCLK:return 0;
- case WM_DPICHANGED:{RECT *r=(RECT*)lp;int width=r->right-r->left;SetWindowPos(w,nullptr,r->left,r->top,width,width/4,SWP_NOZORDER|SWP_NOACTIVATE);return 0;}
+ case WM_DPICHANGED:{RECT *r=(RECT*)lp;int width=r->right-r->left;SetWindowPos(w,nullptr,r->left,r->top,width,(int)std::lround(width/clockface::ratio),SWP_NOZORDER|SWP_NOACTIVATE);return 0;}
  case WM_DESTROY:KillTimer(w,1);PostQuitMessage(0);return 0;
  }return DefWindowProcW(w,msg,wp,lp);}
 int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
  SetProcessDPIAware();ULONG_PTR token;GdiplusStartupInput startup;if(GdiplusStartup(&token,&startup,nullptr)!=Ok)return 1;
  DWORD size=sizeof ink,type=0;COLORREF saved;if(RegGetValueW(HKEY_CURRENT_USER,settings,L"Color",RRF_RT_REG_DWORD,&type,&saved,&size)==ERROR_SUCCESS)ink=saved&0xffffff;
  WNDCLASSW wc={};wc.lpfnWndProc=proc;wc.hInstance=instance;wc.lpszClassName=L"BKClock";wc.hCursor=LoadCursor(nullptr,IDC_ARROW);wc.hIcon=LoadIcon(nullptr,IDI_APPLICATION);RegisterClassW(&wc);
- clockWindow=CreateWindowExW(WS_EX_APPWINDOW,L"BKClock",L"BK Clock",WS_POPUP|WS_THICKFRAME|WS_SYSMENU,(GetSystemMetrics(SM_CXSCREEN)-800)/2,(GetSystemMetrics(SM_CYSCREEN)-200)/2,800,200,nullptr,nullptr,instance,nullptr);
+ clockWindow=CreateWindowExW(WS_EX_APPWINDOW,L"BKClock",L"BK Clock",WS_POPUP|WS_THICKFRAME|WS_SYSMENU,(GetSystemMetrics(SM_CXSCREEN)-608)/2,(GetSystemMetrics(SM_CYSCREEN)-200)/2,608,200,nullptr,nullptr,instance,nullptr);
  if(!clockWindow){GdiplusShutdown(token);return 1;}ShowWindow(clockWindow,SW_SHOW);MSG msg;while(GetMessageW(&msg,nullptr,0,0)>0){TranslateMessage(&msg);DispatchMessageW(&msg);}GdiplusShutdown(token);return 0;
 }
